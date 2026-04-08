@@ -15,6 +15,14 @@ print("Status code :", response.status_code)
 # Parsing HTML avec BeautifulSoup
 soup = BeautifulSoup(response.text, "html.parser")
 
+# URL de la page produit
+product_page_url = url
+print("URL du produit :", product_page_url)
+
+# Extraction de l'UPC
+upc = soup.find("th", string="UPC").find_next("td").text.strip()
+print("UPC :", upc)
+
 # Extraction du titre
 title = soup.find("h1").text.strip()
 print("Titre :", title)
@@ -26,10 +34,6 @@ print("Prix TTC :", price_incl)
 # Extraction du prix HT
 price_excl = soup.find("th", string="Price (excl. tax)").find_next("td").text.strip()
 print("Prix HT :", price_excl)
-
-# Extraction de l'UPC
-upc = soup.find("th", string="UPC").find_next("td").text.strip()
-print("UPC :", upc)
 
 # Extraction de la disponibilité
 availability = soup.find("p", class_="instock availability").text.strip()
@@ -65,23 +69,29 @@ rating = rating_map.get(rating_class, 0)
 
 print("Rating :", rating)
 
+# URL de l'image
+image_relative_url = soup.find("img")["src"]
+image_url = "https://books.toscrape.com/" + image_relative_url.replace("../", "")
+print("Image du livre :", image_url)
+
 # -----------------------------
 # EXPORT CSV
 # -----------------------------
 
-with open("output.csv", "w", newline="", encoding="utf-8") as f:
+with open("data/output.csv", "w", newline="", encoding="utf-8") as f:
     writer = csv.writer(f)
     
     # En-têtes
     writer.writerow([
-        "title", "price_incl", "price_excl", "upc",
-        "availability", "description", "category", "rating"
+        "product_page_url","upc","title", "price_incl", "price_excl",
+        "availability", "description", "category", "rating", "image_url"
+
     ])
     
     # Données
     writer.writerow([
-        title, price_incl, price_excl, upc,
-        availability, description, category, rating
+        product_page_url, upc, title, price_incl, price_excl,
+        availability, description, category, rating, image_url
     ])
 
 print("CSV généré : output.csv")
