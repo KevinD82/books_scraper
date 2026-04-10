@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import csv
-
+from datetime import datetime
 
 # URL du livre à scraper
 url = "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html"
@@ -37,7 +37,7 @@ print("Prix HT :", price_excl)
 
 # Extraction de la disponibilité
 availability = soup.find("p", class_="instock availability").text.strip()
-availability = " ".join(availability.split())  # Nettoyage pour supprimer les sauts de lignes
+availability = " ".join(availability.split())  # Nettoyage
 print("Disponibilité :", availability)
 
 # Extraction de la description
@@ -66,7 +66,6 @@ rating_map = {
     "Five": 5
 }
 rating = rating_map.get(rating_class, 0)
-
 print("Rating :", rating)
 
 # URL de l'image
@@ -78,20 +77,28 @@ print("Image du livre :", image_url)
 # EXPORT CSV
 # -----------------------------
 
-with open("data/output.csv", "w", newline="", encoding="utf-8") as f:
+# Création de l’horodatage
+timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+# Nettoyage du titre pour le nom de fichier
+safe_title = title.replace(" ", "-").replace("/", "-")
+
+# Nom du fichier final
+filename = f"data/{safe_title}_{timestamp}.csv"
+
+with open(filename, "w", newline="", encoding="utf-8") as f:
     writer = csv.writer(f)
-    
+
     # En-têtes
     writer.writerow([
-        "product_page_url","upc","title", "price_incl", "price_excl",
+        "product_page_url", "upc", "title", "price_incl", "price_excl",
         "availability", "description", "category", "rating", "image_url"
-
     ])
-    
+
     # Données
     writer.writerow([
         product_page_url, upc, title, price_incl, price_excl,
         availability, description, category, rating, image_url
     ])
 
-print("CSV généré : output.csv")
+print(f"CSV généré : {filename}")
