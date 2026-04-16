@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 from datetime import datetime
+import os
 
 # URL du livre à scraper
 url = "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html"
@@ -72,6 +73,20 @@ print("Rating :", rating)
 image_relative_url = soup.find("img")["src"]
 image_url = "https://books.toscrape.com/" + image_relative_url.replace("../", "")
 print("Image du livre :", image_url)
+
+# -----------------------------
+# TÉLÉCHARGEMENT DE L’IMAGE
+# -----------------------------
+os.makedirs("data/images", exist_ok=True)
+
+image_data = requests.get(image_url).content
+image_filename = f"data/images/{upc}.jpg"
+
+with open(image_filename, "wb") as img_file:
+    img_file.write(image_data)
+
+print("Image téléchargée :", image_filename)
+
 
 # -----------------------------
 # EXPORT CSV

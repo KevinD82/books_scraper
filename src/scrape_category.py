@@ -2,12 +2,16 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 from datetime import datetime
+import os
 
 # -----------------------------
 # CONFIGURATION
 # -----------------------------
 base_url = "https://books.toscrape.com/catalogue/category/books/fantasy_19/"
 current_page = "page-1.html"
+
+# Création du dossier images
+os.makedirs("data/images", exist_ok=True)
 
 # Création du fichier CSV
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -91,6 +95,15 @@ with open(filename, "w", newline="", encoding="utf-8") as f:
             # Image
             image_relative_url = soup_book.find("img")["src"]
             image_url = "https://books.toscrape.com/" + image_relative_url.replace("../", "")
+
+            # Télécharger l'image
+            image_data = requests.get(image_url).content
+            image_filename = f"images/{upc}.jpg"
+
+            with open(image_filename, "wb") as img_file:
+                img_file.write(image_data)
+
+            print("Image téléchargée :", image_filename)
 
             # -----------------------------
             # ÉCRITURE DANS LE CSV
