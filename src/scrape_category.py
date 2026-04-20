@@ -15,7 +15,8 @@ os.makedirs("data/images", exist_ok=True)
 
 # Création du fichier CSV
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-filename = f"data/fantasy_{timestamp}.csv"
+filename = f"data/{category_name}_{timestamp}.csv"
+
 
 with open(filename, "w", newline="", encoding="utf-8") as f:
     writer = csv.writer(f)
