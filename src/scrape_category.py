@@ -98,7 +98,7 @@ with open(filename, "w", newline="", encoding="utf-8") as f:
 
             # Télécharger l'image
             image_data = requests.get(image_url).content
-            image_filename = f"images/{upc}.jpg"
+            image_filename = f"data/images/{upc}.jpg"
 
             with open(image_filename, "wb") as img_file:
                 img_file.write(image_data)
