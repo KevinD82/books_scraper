@@ -13,9 +13,25 @@ current_page = "page-1.html"
 # Création du dossier images
 os.makedirs("data/images", exist_ok=True)
 
-# Création du fichier CSV
+# -----------------------------
+# RÉCUPÉRATION DU NOM DE LA CATÉGORIE
+# -----------------------------
+# On lit la première page de la catégorie pour extraire son nom
+response = requests.get(base_url + current_page)
+response.encoding = "utf-8"
+soup = BeautifulSoup(response.text, "html.parser")
+
+breadcrumb = soup.find("ul", class_="breadcrumb").find_all("li")
+category_name = breadcrumb[-1].text.strip()  # ex: "Fantasy"
+
+# Nettoyage pour le nom du fichier
+safe_category = category_name.lower().replace(" ", "_")
+
+# -----------------------------
+# CRÉATION DU FICHIER CSV
+# -----------------------------
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-filename = f"data/{category_name}_{timestamp}.csv"
+filename = f"data/{safe_category}_{timestamp}.csv"
 
 
 with open(filename, "w", newline="", encoding="utf-8") as f:
