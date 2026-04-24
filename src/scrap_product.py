@@ -1,19 +1,28 @@
 import requests
 from bs4 import BeautifulSoup
 import csv
-from datetime import datetime
 import os
 
-# URL du livre à scraper
+# -----------------------------
+# FONCTION UTILITAIRE
+# -----------------------------
+def clean_filename(name):
+    """Nettoie un nom pour qu'il soit compatible avec un fichier."""
+    return "".join(c for c in name if c.isalnum() or c in (" ", "-", "_")).rstrip()
+
+
+# -----------------------------
+# URL DU LIVRE À SCRAPER
+# -----------------------------
 url = "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html"
 
 # Requête HTTP
 response = requests.get(url)
-response.encoding = "utf-8"  # Correction de l'encodage
+response.encoding = "utf-8"
 
 print("Status code :", response.status_code)
 
-# Parsing HTML avec BeautifulSoup
+# Parsing HTML
 soup = BeautifulSoup(response.text, "html.parser")
 
 # URL de la page produit
@@ -38,10 +47,10 @@ print("Prix HT :", price_excl)
 
 # Extraction de la disponibilité
 availability = soup.find("p", class_="instock availability").text.strip()
-availability = " ".join(availability.split())  # Nettoyage
+availability = " ".join(availability.split())
 print("Disponibilité :", availability)
 
-# Extraction de la description
+# Description
 description_tag = soup.find("div", id="product_description")
 if description_tag:
     description = description_tag.find_next("p").text.strip()
@@ -49,16 +58,15 @@ else:
     description = "Aucune description"
 print("Description :", description)
 
-# Extraction de la catégorie
+# Catégorie
 breadcrumb = soup.find("ul", class_="breadcrumb").find_all("li")
 category = breadcrumb[2].text.strip()
 print("Catégorie :", category)
 
-# Extraction du rating
+# Rating
 rating_tag = soup.find("p", class_="star-rating")
-rating_class = rating_tag.get("class")[1]  # ex: "Three"
+rating_class = rating_tag.get("class")[1]
 
-# Conversion texte → chiffre
 rating_map = {
     "One": 1,
     "Two": 2,
@@ -69,10 +77,11 @@ rating_map = {
 rating = rating_map.get(rating_class, 0)
 print("Rating :", rating)
 
-# URL de l'image
+# Image
 image_relative_url = soup.find("img")["src"]
 image_url = "https://books.toscrape.com/" + image_relative_url.replace("../", "")
 print("Image du livre :", image_url)
+
 
 # -----------------------------
 # TÉLÉCHARGEMENT DE L’IMAGE
@@ -89,31 +98,22 @@ print("Image téléchargée :", image_filename)
 
 
 # -----------------------------
-# EXPORT CSV
+# EXPORT CSV — NOM DYNAMIQUE
 # -----------------------------
+safe_title = clean_filename(title)
+csv_filename = f"data/Scrap_{safe_title}.csv"
 
-# Création de l’horodatage
-timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-
-# Nettoyage du titre pour le nom de fichier
-safe_title = title.replace(" ", "-").replace("/", "-")
-
-# Nom du fichier final
-filename = f"data/{safe_title}_{timestamp}.csv"
-
-with open(filename, "w", newline="", encoding="utf-8") as f:
+with open(csv_filename, "w", newline="", encoding="utf-8") as f:
     writer = csv.writer(f)
 
-    # En-têtes
     writer.writerow([
         "product_page_url", "upc", "title", "price_incl", "price_excl",
         "availability", "description", "category", "rating", "image_url"
     ])
 
-    # Données
     writer.writerow([
         product_page_url, upc, title, price_incl, price_excl,
         availability, description, category, rating, image_url
     ])
 
-print(f"CSV généré : {filename}")
+print(f"CSV généré : {csv_filename}")

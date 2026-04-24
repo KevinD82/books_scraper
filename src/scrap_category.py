@@ -1,8 +1,15 @@
 import requests
 from bs4 import BeautifulSoup
 import csv
-from datetime import datetime
 import os
+
+# -----------------------------
+# FONCTION UTILITAIRE
+# -----------------------------
+def clean_filename(name):
+    """Nettoie un nom pour qu'il soit compatible avec un fichier."""
+    return "".join(c for c in name if c.isalnum() or c in (" ", "-", "_")).rstrip()
+
 
 # -----------------------------
 # CONFIGURATION
@@ -16,7 +23,6 @@ os.makedirs("data/images", exist_ok=True)
 # -----------------------------
 # RÉCUPÉRATION DU NOM DE LA CATÉGORIE
 # -----------------------------
-# On lit la première page de la catégorie pour extraire son nom
 response = requests.get(base_url + current_page)
 response.encoding = "utf-8"
 soup = BeautifulSoup(response.text, "html.parser")
@@ -24,17 +30,16 @@ soup = BeautifulSoup(response.text, "html.parser")
 breadcrumb = soup.find("ul", class_="breadcrumb").find_all("li")
 category_name = breadcrumb[-1].text.strip()  # ex: "Fantasy"
 
-# Nettoyage pour le nom du fichier
-safe_category = category_name.lower().replace(" ", "_")
+safe_category = clean_filename(category_name)
+csv_filename = f"data/Scrap_{safe_category}.csv"
+
+print(f"Scraping catégorie : {category_name}")
+print(f"Fichier CSV : {csv_filename}")
 
 # -----------------------------
 # CRÉATION DU FICHIER CSV
 # -----------------------------
-timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-filename = f"data/{safe_category}_{timestamp}.csv"
-
-
-with open(filename, "w", newline="", encoding="utf-8") as f:
+with open(csv_filename, "w", newline="", encoding="utf-8") as f:
     writer = csv.writer(f)
 
     # En-têtes CSV
@@ -54,7 +59,6 @@ with open(filename, "w", newline="", encoding="utf-8") as f:
         response.encoding = "utf-8"
         soup = BeautifulSoup(response.text, "html.parser")
 
-        # Récupération des livres de la page
         books = soup.find_all("article", class_="product_pod")
 
         # -----------------------------
@@ -142,4 +146,4 @@ with open(filename, "w", newline="", encoding="utf-8") as f:
             print("\nAucune page suivante. Fin du scraping.")
             break
 
-print(f"\nCSV généré : {filename}")
+print(f"\nCSV généré : {csv_filename}")
