@@ -1,5 +1,3 @@
-#  Books Scraper — Web Scraping en Python
-
 #  Books Scraper — Scraping complet du site BooksToScrape
 
 Ce projet Python réalise un scraping complet du site **BooksToScrape.com**, un site de démonstration conçu pour l’apprentissage du web scraping.  
