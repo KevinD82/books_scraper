@@ -51,8 +51,6 @@ books_scraper/
 |__ main.py                 # Point d'entrée du programme
 
 |__ data/
-    |__ Scrap_.csv
-    |__ Scrap_.csv
     |__ Scrap_BooksToScrape.csv
 
 |__ images/
