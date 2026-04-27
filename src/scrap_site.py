@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 import os
+import re
 
 BASE_URL = "https://books.toscrape.com/"
 
@@ -19,9 +20,17 @@ def scrape_site():
     with open("data/Scrap_BooksToScrape.csv", "w", newline="", encoding="utf-8-sig") as f:
         writer = csv.writer(f)
         writer.writerow([
-            "title", "price_including_tax", "price_excluding_tax",
-            "availability", "description", "category",
-            "rating", "image_url", "image_path"
+            "product_page_url",
+            "universal_product_code",
+            "title",
+            "price_including_tax",
+            "price_excluding_tax",
+            "number_available",
+            "product_description",
+            "category",
+            "review_rating",
+            "image_url",
+            "image_path"
         ])
 
         # --- Étape 1 : Récupérer la page d’accueil ---
@@ -44,43 +53,53 @@ def scrape_site():
 
                 # --- Étape 5 : Boucle sur chaque livre ---
                 for book in books:
-                    book_url = BASE_URL + "catalogue/" + book["href"].replace("../", "")
-                    book_soup = get_soup(book_url)
+
+                    # URL de la page produit
+                    product_page_url = BASE_URL + "catalogue/" + book["href"].replace("../", "")
+                    book_soup = get_soup(product_page_url)
 
                     # Extraction des données du livre
                     title = book_soup.h1.text
                     print(f"  Livre : {title}")
 
                     table = book_soup.select("table tr")
-                    price_incl = table[3].td.text
+                    universal_product_code = table[0].td.text
                     price_excl = table[2].td.text
-                    availability = table[5].td.text
+                    price_incl = table[3].td.text
+                    availability_text = table[5].td.text
+
+                    # Extraction du nombre disponible
+                    numbers = re.findall(r'\d+', availability_text)
+                    number_available = numbers[0] if numbers else "0"
 
                     desc_tag = book_soup.select_one("#product_description")
-                    description = desc_tag.find_next("p").text if desc_tag else ""
+                    product_description = desc_tag.find_next("p").text if desc_tag else ""
 
-                    rating = book_soup.select_one("p.star-rating")["class"][1]
                     category = book_soup.select("ul.breadcrumb li a")[-1].text
 
+                    review_rating = book_soup.select_one("p.star-rating")["class"][1]
+
                     img_rel = book_soup.select_one("div.item.active img")["src"]
-                    img_url = BASE_URL + img_rel.replace("../", "")
+                    image_url = BASE_URL + img_rel.replace("../", "")
 
                     # Téléchargement de l’image
                     image_path = f"data/images/{title}.jpg"
-                    img_data = requests.get(img_url).content
+                    img_data = requests.get(image_url).content
                     with open(image_path, "wb") as img_file:
                         img_file.write(img_data)
 
                     # --- Étape 6 : Écriture dans le CSV ---
                     writer.writerow([
+                        product_page_url,
+                        universal_product_code,
                         title,
                         price_incl,
                         price_excl,
-                        availability,
-                        description,
+                        number_available,
+                        product_description,
                         category,
-                        rating,
-                        img_url,
+                        review_rating,
+                        image_url,
                         image_path
                     ])
 
