@@ -1,5 +1,3 @@
-#  Books Scraper — Web Scraping en Python
-
 #  Books Scraper — Scraping complet du site BooksToScrape
 
 Ce projet Python réalise un scraping complet du site **BooksToScrape.com**, un site de démonstration conçu pour l’apprentissage du web scraping.  
@@ -45,48 +43,46 @@ Le programme permet d’extraire toutes les informations des livres, de téléch
 ---
 
 ##  Structure du projet
-
+```
 books_scraper/
-│
-├── scrap_product.py        # Phase 1
-├── scrap_category.py       # Phase 2
-├── scrap_site.py           # Phase 3
-├── main.py                 # Point d'entrée du programme
-│
-├── data/
-│   ├── Scrap_<Livre>.csv
-│   ├── Scrap_<Categorie>.csv
-│   ├── Scrap_BooksToScrape.csv
-│   └── images/
-│       ├── <upc>.jpg
-│
-└── requirements.txt
+|__ scrap_product.py        # Phase 1
+|__ scrap_category.py       # Phase 2
+|__ scrap_site.py           # Phase 3
+|__ main.py                 # Point d'entrée du programme
 
+|__ data/
+    |__ Scrap_BooksToScrape.csv
+
+|__ images/
+    |__ .jpg
+
+|__ requirements.txt
+```
 
 ## Installation & exécution
 
 ### 1. Cloner le projet
-```bash
+```
 git clone https://github.com/KevinD82/books_scraper.git
 cd books_scraper
 ```
 ### 2. créer l'environnement virtuel
-```bash
+```
 python -m venv .venv
 ```
 
 ### 3. Activer l'environnement virtuel
-```bash
+```
 .venv\Scripts\activate
 ```
 
 ### 4. Installer les dépendances
-```bash
+```
 pip install -r requirements.txt
 ```
 
 ### 5. Executer le script
-```bash
+```
 python main.py
 ```
 
