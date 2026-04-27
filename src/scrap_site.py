@@ -3,148 +3,90 @@ from bs4 import BeautifulSoup
 import csv
 import os
 
-# -----------------------------
-# FONCTION UTILITAIRE
-# -----------------------------
-def clean_filename(name):
-    """Nettoie un nom pour qu'il soit compatible avec un fichier."""
-    return "".join(c for c in name if c.isalnum() or c in (" ", "-", "_")).rstrip()
+BASE_URL = "https://books.toscrape.com/"
 
+def get_soup(url):
+    """Télécharge une page HTML et renvoie un objet BeautifulSoup."""
+    response = requests.get(url)
+    return BeautifulSoup(response.text, "html.parser")
 
-# -----------------------------
-# RÉCUPÉRATION DE TOUTES LES CATÉGORIES
-# -----------------------------
-def get_categories():
-    base_url = "https://books.toscrape.com/"
-    response = requests.get(base_url)
-    response.encoding = "utf-8"
-    soup = BeautifulSoup(response.text, "html.parser")
-
-    categories = []
-
-    category_links = soup.select("ul.nav-list ul li a")
-
-    for link in category_links:
-        name = link.text.strip()
-        url = base_url + link["href"]
-        categories.append((name, url))
-
-    return categories
-
-
-# -----------------------------
-# SCRAPING D'UNE CATÉGORIE (PAGINATION)
-# -----------------------------
-def scrape_category(category_url):
-    base = category_url.rsplit("/", 1)[0] + "/"
-    current_page = category_url.split("/")[-1]
-
-    product_urls = []
-
-    while True:
-        url = base + current_page
-        response = requests.get(url)
-        response.encoding = "utf-8"
-        soup = BeautifulSoup(response.text, "html.parser")
-
-        books = soup.find_all("article", class_="product_pod")
-
-        for book in books:
-            relative_url = book.h3.a["href"]
-            product_url = "https://books.toscrape.com/catalogue/" + relative_url.replace("../", "")
-            product_urls.append(product_url)
-
-        next_button = soup.find("li", class_="next")
-
-        if next_button:
-            current_page = next_button.a["href"]
-        else:
-            break
-
-    return product_urls
-
-
-# -----------------------------
-# SCRAPING D'UN LIVRE (PHASE 1)
-# -----------------------------
-def scrape_product(product_url):
-    response = requests.get(product_url)
-    response.encoding = "utf-8"
-    soup = BeautifulSoup(response.text, "html.parser")
-
-    upc = soup.find("th", string="UPC").find_next("td").text.strip()
-    title = soup.find("h1").text.strip()
-    price_incl = soup.find("p", class_="price_color").text.strip()
-    price_excl = soup.find("th", string="Price (excl. tax)").find_next("td").text.strip()
-
-    availability = soup.find("p", class_="instock availability").text.strip()
-    availability = " ".join(availability.split())
-
-    description_tag = soup.find("div", id="product_description")
-    description = description_tag.find_next("p").text.strip() if description_tag else "Aucune description"
-
-    breadcrumb = soup.find("ul", class_="breadcrumb").find_all("li")
-    category = breadcrumb[2].text.strip()
-
-    rating_tag = soup.find("p", class_="star-rating")
-    rating_class = rating_tag.get("class")[1]
-    rating_map = {"One": 1, "Two": 2, "Three": 3, "Four": 4, "Five": 5}
-    rating = rating_map.get(rating_class, 0)
-
-    image_relative_url = soup.find("img")["src"]
-    image_url = "https://books.toscrape.com/" + image_relative_url.replace("../", "")
-
-    # Télécharger l'image
-    os.makedirs("data/images", exist_ok=True)
-    image_data = requests.get(image_url).content
-    image_filename = f"data/images/{upc}.jpg"
-
-    with open(image_filename, "wb") as img_file:
-        img_file.write(image_data)
-
-    return {
-        "product_page_url": product_url,
-        "upc": upc,
-        "title": title,
-        "price_incl": price_incl,
-        "price_excl": price_excl,
-        "availability": availability,
-        "description": description,
-        "category": category,
-        "rating": rating,
-        "image_url": image_url
-    }
-
-
-# -----------------------------
-# SCRAPING COMPLET DU SITE
-# -----------------------------
 def scrape_site():
-    site_name = "BooksToScrape"
-    safe_site = clean_filename(site_name)
-    csv_filename = f"data/Scrap_{safe_site}.csv"
+    print("Scraping du site BooksToScrape démarré !")
 
-    os.makedirs("data", exist_ok=True)
+    # --- Étape 0 : Préparation des dossiers et du CSV ---
+    os.makedirs("data/images", exist_ok=True)
 
-    categories = get_categories()
-
-    with open(csv_filename, "w", newline="", encoding="utf-8") as f:
+    with open("data/Scrap_BooksToScrape.csv", "w", newline="", encoding="utf-8-sig") as f:
         writer = csv.writer(f)
-
         writer.writerow([
-            "product_page_url", "upc", "title", "price_incl", "price_excl",
-            "availability", "description", "category", "rating", "image_url"
+            "title", "price_including_tax", "price_excluding_tax",
+            "availability", "description", "category",
+            "rating", "image_url", "image_path"
         ])
 
-        for category_name, category_url in categories:
-            print(f"\n=== Catégorie : {category_name} ===")
+        # --- Étape 1 : Récupérer la page d’accueil ---
+        home_soup = get_soup(BASE_URL)
 
-            product_urls = scrape_category(category_url)
+        # --- Étape 2 : Extraire la liste des catégories ---
+        categories = home_soup.select("ul.nav-list ul li a")
+        print(f"{len(categories)} catégories trouvées.")
 
-            for product_url in product_urls:
-                print(f"Scraping livre : {product_url}")
-                data = scrape_product(product_url)
-                writer.writerow(data.values())
+        # --- Étape 3 : Boucle sur chaque catégorie ---
+        for cat in categories:
+            category_name = cat.text.strip()
+            category_url = BASE_URL + cat["href"]
+            print(f"\nCatégorie : {category_name}")
 
-    print(f"\nScraping complet terminé !")
-    print(f"CSV généré : {csv_filename}")
+            # --- Étape 4 : Boucle sur les pages de la catégorie ---
+            while True:
+                cat_soup = get_soup(category_url)
+                books = cat_soup.select("article.product_pod h3 a")
+
+                # --- Étape 5 : Boucle sur chaque livre ---
+                for book in books:
+                    book_url = BASE_URL + "catalogue/" + book["href"].replace("../", "")
+                    book_soup = get_soup(book_url)
+
+                    # Extraction des données du livre
+                    title = book_soup.h1.text
+                    print(f"  Livre : {title}")
+
+                    table = book_soup.select("table tr")
+                    price_incl = table[3].td.text
+                    price_excl = table[2].td.text
+                    availability = table[5].td.text
+
+                    desc_tag = book_soup.select_one("#product_description")
+                    description = desc_tag.find_next("p").text if desc_tag else ""
+
+                    rating = book_soup.select_one("p.star-rating")["class"][1]
+                    category = book_soup.select("ul.breadcrumb li a")[-1].text
+
+                    img_rel = book_soup.select_one("div.item.active img")["src"]
+                    img_url = BASE_URL + img_rel.replace("../", "")
+
+                    # Téléchargement de l’image
+                    image_path = f"data/images/{title}.jpg"
+                    img_data = requests.get(img_url).content
+                    with open(image_path, "wb") as img_file:
+                        img_file.write(img_data)
+
+                    # --- Étape 6 : Écriture dans le CSV ---
+                    writer.writerow([
+                        title,
+                        price_incl,
+                        price_excl,
+                        availability,
+                        description,
+                        category,
+                        rating,
+                        img_url,
+                        image_path
+                    ])
+
+                # --- Pagination : passer à la page suivante si elle existe ---
+                next_btn = cat_soup.select_one("li.next a")
+                if next_btn:
+                    category_url = BASE_URL + "catalogue/" + next_btn["href"]
+                else:
+                    break
