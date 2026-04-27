@@ -7,55 +7,61 @@ Le programme permet d’extraire toutes les informations des livres, de téléch
 
 ##  Fonctionnalités
 
-###  Phase 1 — Scraping d’un produit
-- Extraction des informations d’un livre :
-  - URL de la page produit  
-  - UPC  
-  - Titre  
-  - Prix TTC / HT  
-  - Disponibilité  
-  - Description  
-  - Catégorie  
-  - Rating (converti en chiffre)  
-  - URL de l’image  
-- Téléchargement de l’image du livre  
-- Génération d’un fichier CSV nommé automatiquement :  
-  **`Scrap_<Nom_du_livre>.csv`**
+###  Phase 1 — recupération de la page d'accueil
+- Extraction de la liste des catégories
 
 ---
 
-###  Phase 2 — Scraping d’une catégorie
-- Parcours automatique de toutes les pages d’une catégorie (pagination)
-- Extraction de tous les livres de la catégorie
-- Téléchargement des images
-- Génération d’un fichier CSV :  
-  **`Scrap_<Nom_de_la_catégorie>.csv`**
+###  Phase 2 — Parcours de chaque catégorie
+- Construction de l’URL de la catégorie
+- Gestion de la pagination (page suivante)
 
 ---
 
-###  Phase 3 — Scraping complet du site
-- Récupération automatique de toutes les catégories
-- Scraping de tous les livres du site (1000 livres)
-- Téléchargement de toutes les images
-- Génération d’un CSV global :  
-  **`Scrap_BooksToScrape.csv`**
+###  Phase 3 — Parcours de chaque page de la catégorie
+- Extraction de la liste des livres
+
+---
+
+###  Phase 4 — Parcours de chaque livre
+- Ouverture de la page du livre
+- Extraction des informations :
+
+  - Titre
+  - Prix TTC
+  - Prix HT
+  - Disponibilité
+  - Description
+  - Catégorie
+  - Note (rating)
+  - URL de l’image
+
+---
+
+###  Phase 5 — Parcours de chaque livre
+
+Enregistrement dans data/images/
+
+---
+
+###  Phase 6 — Parcours de chaque livre
+
+- Une ligne par livre dans Scrap_BooksToScrape.csv
 
 ---
 
 ##  Structure du projet
 ```
 books_scraper/
-|__ scrap_product.py        # Phase 1
-|__ scrap_category.py       # Phase 2
-|__ scrap_site.py           # Phase 3
-|__ main.py                 # Point d'entrée du programme
+|__ scrap_site.py           
+|__ main.py                
 
 |__ data/
     |__ Scrap_BooksToScrape.csv
+    |__ images/
+        |__ .jpg
 
-|__ images/
-    |__ .jpg
-
+|__ README.md
 |__ requirements.txt
 ```
 
