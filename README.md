@@ -27,14 +27,16 @@ Le programme permet d’extraire toutes les informations des livres, de téléch
 - Ouverture de la page du livre
 - Extraction des informations :
 
-  - Titre
-  - Prix TTC
-  - Prix HT
-  - Disponibilité
-  - Description
-  - Catégorie
-  - Note (rating)
-  - URL de l’image
+  - product_page_url
+  - universal_product_code (UPC)
+  - title
+  - price_including_tax
+  - price_excluding_tax
+  - number_available
+  - product_description
+  - category
+  - review_rating
+  - image_url
 
 ---
 
