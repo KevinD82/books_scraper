@@ -65,6 +65,7 @@ books_scraper/
 
 |__ README.md
 |__ requirements.txt
+
 ```
 
 ## Installation & exécution
