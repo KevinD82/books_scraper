@@ -45,9 +45,8 @@ Le programme permet d’extraire toutes les informations des livres, de téléch
 ##  Structure du projet
 ```
 books_scraper/
-|__ scrap_product.py        # Phase 1
-|__ scrap_category.py       # Phase 2
-|__ scrap_site.py           # Phase 3
+
+|__ scrap_site.py           
 |__ main.py                 # Point d'entrée du programme
 
 |__ data/
